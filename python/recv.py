@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 
-from __future__ import division
 import os
 import errno
-import sys
 import time
 
 
-#shared_dir = os.environ['HOME'] + '/Dropbox/dropbox-buf'
-shared_dir = '/tmp/dropbox-buf'
-#local_dir = os.environ['HOME'] + '/dropbox-dl'
-local_dir = '/tmp/dropbox-dl'
+shared_dir = os.environ['HOME'] + '/Dropbox/dropbox-buf'
+#shared_dir = '/tmp/dropbox-buf'
+local_dir = os.environ['HOME'] + '/dropbox-dl'
+#local_dir = '/tmp/dropbox-dl'
 
 
 def wait_appear(fname):
@@ -50,7 +48,7 @@ def main():
     umask = os.umask(0)
     os.umask(umask)
     dir_mode = (~umask & 0777) | 0111
-
+    mkdir_p(local_dir, dir_mode)
     cur_file = shared_dir + '/.cur'
 
     while True:
@@ -68,7 +66,9 @@ def main():
                 elif ftype == 'f':   # file
                     filename = f.readline()[:-1]
                     n_chunk = int(f.readline())
-                    local_path = local_dir + '/' + dirname
+                    local_path = local_dir
+                    if dirname:
+                        local_path += '/' + dirname
                     mkdir_p(local_path, dir_mode)
                     recv_file(local_path, filename, n_chunk)
 
