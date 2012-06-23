@@ -6,8 +6,8 @@ import time
 
 
 shared_dir = os.environ['HOME'] + '/Dropbox/dropbox-buf'
-#shared_dir = '/tmp/dropbox-buf'
 local_dir = os.environ['HOME'] + '/dropbox-dl'
+#shared_dir = '/tmp/dropbox-buf'
 #local_dir = '/tmp/dropbox-dl'
 
 
@@ -26,22 +26,27 @@ def mkdir_p(path, mode=None):
             raise
 
 
-def recv_file(dirname, filename, n_chunk):
-    for n in xrange(n_chunk):
-        part_name = '.part_%03d' % n
-        src = shared_dir + '/' + part_name
-        dst = local_dir + '/' + part_name
-        wait_appear(src)
-        os.rename(src, dst)
+def recv_file(dst_dir, filename, n_chunk):
+    dst_name = dst_dir + '/' + filename
 
-    with open(dirname + '/' + filename, 'wb') as f_merge:
+    if n_chunk == 1:
+        os.rename(shared_dir + '/.part_000', dst_name)
+    else:
         for n in xrange(n_chunk):
-            part_file = local_dir + '/.part_%03d' % n
-            with open(part_file, 'rb') as f_chunk:
-                f_merge.write(f_chunk.read())
-            os.remove(part_file)
+            part_name = '.part_%03d' % n
+            src = shared_dir + '/' + part_name
+            dst = local_dir + '/' + part_name
+            wait_appear(src)
+            os.rename(src, dst)
 
-    print dirname + '/' + filename
+        with open(dst_name, 'wb') as f_merge:
+            for n in xrange(n_chunk):
+                part_file = local_dir + '/.part_%03d' % n
+                with open(part_file, 'rb') as f_chunk:
+                    f_merge.write(f_chunk.read())
+                os.remove(part_file)
+
+    print 'f:', dst_name
 
 
 def main():
@@ -60,17 +65,16 @@ def main():
                 os.remove(cur_file)
                 break
             else:
-                dirname = f.readline()[:-1]
+                dst_dir = (local_dir + '/' + f.readline()[:-1]).rstrip('/')
+
                 if ftype == 'd':   # directory
-                    mkdir_p(dirname, dir_mode)
+                    mkdir_p(dst_dir, dir_mode)
+                    print 'd:', dst_dir
                 elif ftype == 'f':   # file
                     filename = f.readline()[:-1]
                     n_chunk = int(f.readline())
-                    local_path = local_dir
-                    if dirname:
-                        local_path += '/' + dirname
-                    mkdir_p(local_path, dir_mode)
-                    recv_file(local_path, filename, n_chunk)
+                    mkdir_p(dst_dir, dir_mode)
+                    recv_file(dst_dir, filename, n_chunk)
 
         os.remove(cur_file)
 

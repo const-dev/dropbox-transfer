@@ -62,20 +62,21 @@ def main():
             last_dir = ''
             dirs = [d for d in rootdir.split('/') if d not in ['.', '']]
             if dirs and dirs[-1] != '..':
-                last_dir = dirs[-1] + '/'
+                last_dir = dirs[-1]
                 send_dir(last_dir)
 
             for dirpath, dnames, fnames in os.walk(rootdir, followlinks=True):
                 dirpath = dirpath.rstrip('/')
-                dst_dir = (last_dir + dirpath[skip:].lstrip('/')).rstrip('/')
+                dst_dir = last_dir + '/' + dirpath[skip:].lstrip('/')
+                dst_dir = dst_dir.rstrip('/')   # for dirpath[skip:] == ''
 
                 for dname in dnames:
-                    print 'dir:', dirpath + '/' + dname
+                    print 'd:', dirpath + '/' + dname
                     send_dir(dst_dir + '/' + dname)
 
                 for fname in fnames:
                     src_path = dirpath + '/' + fname
-                    print 'file:', src_path
+                    print 'f:', src_path
                     send_file(src_path, dst_dir, fname)
 
     with open(cur_file, 'w') as f:
