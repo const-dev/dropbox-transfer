@@ -10,7 +10,7 @@ name="$shared_dir/name.txt"
 sp_size=204800
 
 
-function wait_disapper {
+function wait_disappear {
     while [ -f "$1" ]; do
         sleep 1
     done
@@ -41,12 +41,11 @@ while (( "$#" )); do
         for ((i = 1; i <= n; ++i)); do
             part_name=`printf "$shared_dir/part%03d" $i`
             echo $part_name
-            echo "split -n $i/$n $f > $part_name"
             split -n $i/$n "$f" > "$part_name"
-            wait_disapper "$part_name"
+            wait_disappear "$part_name"
         done
 
-        wait_disapper "$name"
+        wait_disappear "$name"
     done
 
     touch "$nfile"
