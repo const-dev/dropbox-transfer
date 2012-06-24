@@ -7,10 +7,13 @@ import time
 import math
 
 
-chunk_size = 200 * 1024 * 1024   # 200 MB
-
+# Example for Unix or Mac OS X
 shared_dir = os.environ['HOME'] + '/Dropbox/dropbox-buf'
-#shared_dir = '/tmp/dropbox-buf'
+
+# Example for Windows
+#shared_dir = r'C:\Documents and Settings\userid\My Documents\My Dropbox\dropbox-buf'
+
+chunk_size = 200 * 1024 * 1024   # 200 MB
 
 cur_file = shared_dir + '/.cur'
 
@@ -31,18 +34,20 @@ def split_file(fname, n_chunk):
 
 
 def send_dir(dst_dir):
+    print 'd:', os.path.normpath(dst_dir)
     with open(cur_file, 'w') as f:
-        f.write('d\n')
+        f.write('d\n')   # directory
         f.write(dst_dir + '\n')
     wait_disappear(cur_file)
 
 
 def send_file(src_path, dst_dir, fname):
+    print 'f:', os.path.normpath(src_path)
     fsize = os.path.getsize(src_path)
     n_chunk = max(1, int(math.ceil(fsize / chunk_size)))
 
     with open(cur_file, 'w') as f:
-        f.write('f\n')
+        f.write('f\n')   # file
         f.write(dst_dir + '\n')
         f.write(fname + '\n')
         f.write('%d\n' % n_chunk)
@@ -54,7 +59,6 @@ def send_file(src_path, dst_dir, fname):
 def main():
     for arg in sys.argv[1:]:
         if os.path.isfile(arg):
-            print 'file:', arg
             send_file(arg, '', os.path.basename(arg))
         elif os.path.isdir(arg):
             rootdir = arg
@@ -71,16 +75,13 @@ def main():
                 dst_dir = dst_dir.rstrip('/')   # for dirpath[skip:] == ''
 
                 for dname in dnames:
-                    print 'd:', dirpath + '/' + dname
                     send_dir(dst_dir + '/' + dname)
 
                 for fname in fnames:
-                    src_path = dirpath + '/' + fname
-                    print 'f:', src_path
-                    send_file(src_path, dst_dir, fname)
+                    send_file(dirpath + '/' + fname, dst_dir, fname)
 
     with open(cur_file, 'w') as f:
-        f.write('q\n')
+        f.write('q\n')   # quit
 
 
 if __name__ == '__main__':

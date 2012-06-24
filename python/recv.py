@@ -5,10 +5,13 @@ import errno
 import time
 
 
+# Example for Unix or Mac OS X
 shared_dir = os.environ['HOME'] + '/Dropbox/dropbox-buf'
 local_dir = os.environ['HOME'] + '/dropbox-dl'
-#shared_dir = '/tmp/dropbox-buf'
-#local_dir = '/tmp/dropbox-dl'
+
+# Example for Windows
+#shared_dir = r'C:\Documents and Settings\userid\My Documents\My Dropbox\dropbox-buf'
+#local_dir = r'C:\Documents and Settings\userid\dropbox-dl'
 
 
 def wait_appear(fname):
@@ -20,9 +23,7 @@ def mkdir_p(path, mode=None):
     try:
         os.makedirs(path)
     except OSError as ex:
-        if ex.errno == errno.EEXIST:
-            pass
-        else:
+        if ex.errno != errno.EEXIST:
             raise
 
 
@@ -46,7 +47,7 @@ def recv_file(dst_dir, filename, n_chunk):
                     f_merge.write(f_chunk.read())
                 os.remove(part_file)
 
-    print 'f:', dst_name
+    print 'f:', os.path.normpath(dst_name)
 
 
 def main():
@@ -62,14 +63,13 @@ def main():
         with open(cur_file) as f:
             ftype = f.readline()[:-1]
             if ftype == 'q':
-                os.remove(cur_file)
                 break
             else:
                 dst_dir = (local_dir + '/' + f.readline()[:-1]).rstrip('/')
 
                 if ftype == 'd':   # directory
                     mkdir_p(dst_dir, dir_mode)
-                    print 'd:', dst_dir
+                    print 'd:', os.path.normpath(dst_dir)
                 elif ftype == 'f':   # file
                     filename = f.readline()[:-1]
                     n_chunk = int(f.readline())
@@ -77,6 +77,8 @@ def main():
                     recv_file(dst_dir, filename, n_chunk)
 
         os.remove(cur_file)
+
+    os.remove(cur_file)
 
 
 if __name__ == '__main__':
