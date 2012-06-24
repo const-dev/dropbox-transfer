@@ -15,7 +15,7 @@ shared_dir = os.environ['HOME'] + '/Dropbox/dropbox-buf'
 
 chunk_size = 200 * 1024 * 1024   # 200 MB
 
-cur_file = shared_dir + '/.cur'
+cur_file = shared_dir + os.sep + '.cur'
 
 
 def wait_disappear(fname):
@@ -25,7 +25,7 @@ def wait_disappear(fname):
 
 def split_file(fname, n_chunk):
     for n in range(n_chunk):
-        part_file = shared_dir + '/.part_%03d' % n
+        part_file = shared_dir + os.sep + '.part_%03d' % n
         with open(fname, 'rb') as f_in, open(part_file, 'wb') as f_out:
             f_in.seek(n * chunk_size)
             f_out.write(f_in.read(chunk_size))
@@ -33,11 +33,18 @@ def split_file(fname, n_chunk):
             wait_disappear(part_file)
 
 
+# just being lazy and assume '/' works universally
+def univ_path(path):
+    if os.sep == '/':
+        return path
+    return '/'.join(path.split(os.sep))
+
+
 def send_dir(dst_dir):
     print('d:', os.path.normpath(dst_dir))
     with open(cur_file, 'w', encoding='utf-8') as f:
         f.write('d\n')   # directory
-        f.write(dst_dir + '\n')
+        f.write(univ_path(dst_dir) + '\n')
     wait_disappear(cur_file)
 
 
@@ -48,7 +55,7 @@ def send_file(src_path, dst_dir, fname):
 
     with open(cur_file, 'w', encoding='utf-8') as f:
         f.write('f\n')   # file
-        f.write(dst_dir + '\n')
+        f.write(univ_path(dst_dir) + '\n')
         f.write(fname + '\n')
         f.write('%d\n' % n_chunk)
 
@@ -64,21 +71,21 @@ def main():
             rootdir = arg
             skip = len(rootdir)
             last_dir = ''
-            dirs = [d for d in rootdir.split('/') if d not in ['.', '']]
+            dirs = [d for d in rootdir.split(os.sep) if d not in ['.', '']]
             if dirs and dirs[-1] != '..':
                 last_dir = dirs[-1]
                 send_dir(last_dir)
 
             for dirpath, dnames, fnames in os.walk(rootdir, followlinks=True):
-                dirpath = dirpath.rstrip('/')
-                dst_dir = last_dir + '/' + dirpath[skip:].lstrip('/')
-                dst_dir = dst_dir.rstrip('/')   # for dirpath[skip:] == ''
+                dirpath = dirpath.rstrip(os.sep)
+                dst_dir = last_dir + os.sep + dirpath[skip:].lstrip(os.sep)
+                dst_dir = dst_dir.rstrip(os.sep)   # for dirpath[skip:] == ''
 
                 for dname in dnames:
-                    send_dir(dst_dir + '/' + dname)
+                    send_dir(dst_dir + os.sep + dname)
 
                 for fname in fnames:
-                    send_file(dirpath + '/' + fname, dst_dir, fname)
+                    send_file(dirpath + os.sep + fname, dst_dir, fname)
 
     with open(cur_file, 'w', encoding='utf-8') as f:
         f.write('q\n')   # quit
