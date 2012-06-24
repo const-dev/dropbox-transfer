@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3.2
 
 from __future__ import division
 import os
@@ -24,7 +24,7 @@ def wait_disappear(fname):
 
 
 def split_file(fname, n_chunk):
-    for n in xrange(n_chunk):
+    for n in range(n_chunk):
         part_file = shared_dir + '/.part_%03d' % n
         with open(fname, 'rb') as f_in, open(part_file, 'wb') as f_out:
             f_in.seek(n * chunk_size)
@@ -34,19 +34,19 @@ def split_file(fname, n_chunk):
 
 
 def send_dir(dst_dir):
-    print 'd:', os.path.normpath(dst_dir)
-    with open(cur_file, 'w') as f:
+    print('d:', os.path.normpath(dst_dir))
+    with open(cur_file, 'w', encoding='utf-8') as f:
         f.write('d\n')   # directory
         f.write(dst_dir + '\n')
     wait_disappear(cur_file)
 
 
 def send_file(src_path, dst_dir, fname):
-    print 'f:', os.path.normpath(src_path)
+    print('f:', os.path.normpath(src_path))
     fsize = os.path.getsize(src_path)
     n_chunk = max(1, int(math.ceil(fsize / chunk_size)))
 
-    with open(cur_file, 'w') as f:
+    with open(cur_file, 'w', encoding='utf-8') as f:
         f.write('f\n')   # file
         f.write(dst_dir + '\n')
         f.write(fname + '\n')
@@ -80,7 +80,7 @@ def main():
                 for fname in fnames:
                     send_file(dirpath + '/' + fname, dst_dir, fname)
 
-    with open(cur_file, 'w') as f:
+    with open(cur_file, 'w', encoding='utf-8') as f:
         f.write('q\n')   # quit
 
 

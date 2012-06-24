@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3.2
 
 import os
 import errno
@@ -35,7 +35,7 @@ def recv_file(dst_dir, filename, n_chunk):
         wait_appear(src)
         os.rename(src, dst_name)
     else:
-        for n in xrange(n_chunk):
+        for n in range(n_chunk):
             part_name = '.part_%03d' % n
             src = shared_dir + '/' + part_name
             dst = local_dir + '/' + part_name
@@ -43,26 +43,26 @@ def recv_file(dst_dir, filename, n_chunk):
             os.rename(src, dst)
 
         with open(dst_name, 'wb') as f_merge:
-            for n in xrange(n_chunk):
+            for n in range(n_chunk):
                 part_file = local_dir + '/.part_%03d' % n
                 with open(part_file, 'rb') as f_chunk:
                     f_merge.write(f_chunk.read())
                 os.remove(part_file)
 
-    print 'f:', os.path.normpath(dst_name)
+    print('f:', os.path.normpath(dst_name))
 
 
 def main():
     umask = os.umask(0)
     os.umask(umask)
-    dir_mode = (~umask & 0777) | 0111
+    dir_mode = (~umask & 0o777) | 0o111
     mkdir_p(local_dir, dir_mode)
     cur_file = shared_dir + '/.cur'
 
     while True:
         wait_appear(cur_file)
 
-        with open(cur_file) as f:
+        with open(cur_file, 'r', encoding='utf-8') as f:
             ftype = f.readline()[:-1]
             if ftype == 'q':
                 break
@@ -71,7 +71,7 @@ def main():
 
                 if ftype == 'd':   # directory
                     mkdir_p(dst_dir, dir_mode)
-                    print 'd:', os.path.normpath(dst_dir)
+                    print('d:', os.path.normpath(dst_dir))
                 elif ftype == 'f':   # file
                     filename = f.readline()[:-1]
                     n_chunk = int(f.readline())
