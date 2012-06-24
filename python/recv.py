@@ -31,7 +31,9 @@ def recv_file(dst_dir, filename, n_chunk):
     dst_name = dst_dir + '/' + filename
 
     if n_chunk == 1:
-        os.rename(shared_dir + '/.part_000', dst_name)
+        src = shared_dir + '/.part_000'
+        wait_appear(src)
+        os.rename(src, dst_name)
     else:
         for n in xrange(n_chunk):
             part_name = '.part_%03d' % n
