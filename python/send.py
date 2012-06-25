@@ -25,12 +25,13 @@ def wait_disappear(fname):
 
 def split_file(fname, n_chunk):
     for n in range(n_chunk):
-        part_file = shared_dir + os.sep + '.part_%03d' % n
-        with open(fname, 'rb') as f_in, open(part_file, 'wb') as f_out:
+        tmp_file = shared_dir + os.sep + '.part_tmp'
+        with open(fname, 'rb') as f_in, open(tmp_file, 'wb') as f_out:
             f_in.seek(n * chunk_size)
             f_out.write(f_in.read(chunk_size))
-        if n < n_chunk - 1:
-            wait_disappear(part_file)
+        part_file = shared_dir + os.sep + '.part_%03d' % n
+        os.rename(tmp_file, part_file)
+        wait_disappear(part_file)
 
 
 # just being lazy and assume '/' works universally
@@ -65,6 +66,7 @@ def send_file(src_path, dst_dir, fname):
 
 def main():
     for arg in sys.argv[1:]:
+        print(time.strftime('%m/%d %H:%M:%S', time.gmtime()))
         if os.path.isfile(arg):
             send_file(arg, '', os.path.basename(arg))
         elif os.path.isdir(arg):
@@ -87,6 +89,7 @@ def main():
                 for fname in fnames:
                     send_file(dirpath + os.sep + fname, dst_dir, fname)
 
+    print(time.strftime('%m/%d %H:%M:%S', time.gmtime()))
     with open(cur_file, 'w', encoding='utf-8') as f:
         f.write('q\n')   # quit
 
