@@ -1,6 +1,5 @@
 #!/usr/bin/env python3.2
 
-from __future__ import division
 import os
 import sys
 import time
