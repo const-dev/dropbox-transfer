@@ -28,28 +28,30 @@ def mkdir_p(path, mode=None):
 
 
 def recv_file(dst_dir, filename, n_chunk):
-    dst_name = dst_dir + '/' + filename
+    dst = dst_dir + '/' + filename
 
     if n_chunk == 1:
         src = shared_dir + '/.part_000'
         wait_appear(src)
-        os.rename(src, dst_name)
+        os.rename(src, dst)
     else:
+        dst_part = dst + '.part'
+
+        try:
+            os.remove(dst_part)
+        except OSError as ex:
+            if ex.errno != errno.ENOENT:
+                raise
+
         for n in range(n_chunk):
-            part_name = '.part_%03d' % n
-            src = shared_dir + '/' + part_name
-            dst = local_dir + '/' + part_name
+            src = shared_dir + '/.part_%03d' % n
             wait_appear(src)
-            os.rename(src, dst)
+            with open(src, 'rb') as f_chunk, open(dst_part, 'ab') as f_merge:
+                f_merge.write(f_chunk.read())
+            os.remove(src)
+        os.rename(dst_part, dst)
 
-        with open(dst_name, 'wb') as f_merge:
-            for n in range(n_chunk):
-                part_file = local_dir + '/.part_%03d' % n
-                with open(part_file, 'rb') as f_chunk:
-                    f_merge.write(f_chunk.read())
-                os.remove(part_file)
-
-    print('f:', os.path.normpath(dst_name))
+    print('f:', os.path.normpath(dst))
 
 
 def main():
