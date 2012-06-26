@@ -41,7 +41,7 @@ def univ_path(path):
 
 
 def send_dir(dst_dir):
-    print(time.strftime('%m/%d %H:%M:%S', time.gmtime()), end=' ')
+    print(time.strftime('%m/%d %H:%M:%S', time.localtime()), end=' ')
     print('d:', os.path.normpath(dst_dir))
     with open(cur_file, 'w', encoding='utf-8') as f:
         f.write('d\n')   # directory
@@ -50,7 +50,7 @@ def send_dir(dst_dir):
 
 
 def send_file(src_path, dst_dir, fname):
-    print(time.strftime('%m/%d %H:%M:%S', time.gmtime()), end=' ')
+    print(time.strftime('%m/%d %H:%M:%S', time.localtime()), end=' ')
     print('f:', os.path.normpath(src_path))
     fsize = os.path.getsize(src_path)
     n_chunk = max(1, int(math.ceil(fsize / chunk_size)))
@@ -89,7 +89,7 @@ def main():
                 for fname in fnames:
                     send_file(dirpath + os.sep + fname, dst_dir, fname)
 
-    print(time.strftime('%m/%d %H:%M:%S', time.gmtime()))
+    print(time.strftime('%m/%d %H:%M:%S', time.localtime()))
     with open(cur_file, 'w', encoding='utf-8') as f:
         f.write('q\n')   # quit
 
