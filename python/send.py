@@ -24,12 +24,10 @@ def wait_disappear(fname):
 
 def split_file(fname, n_chunk):
     for n in range(n_chunk):
-        tmp_file = shared_dir + os.sep + '.part_tmp'
-        with open(fname, 'rb') as f_in, open(tmp_file, 'wb') as f_out:
+        part_file = shared_dir + os.sep + '.part_%03d' % n
+        with open(fname, 'rb') as f_in, open(part_file, 'wb') as f_out:
             f_in.seek(n * chunk_size)
             f_out.write(f_in.read(chunk_size))
-        part_file = shared_dir + os.sep + '.part_%03d' % n
-        os.rename(tmp_file, part_file)
         wait_disappear(part_file)
 
 
